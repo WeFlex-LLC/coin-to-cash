@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { CoinType } from '../enums/coin-type.enum';
 import { Coin } from './coin.entity';
 import { Pair } from './pair';
@@ -13,32 +19,19 @@ export class CoinToType {
 
   @Column({
     type: 'enum',
-    enum: CoinType
+    enum: CoinType,
   })
   type: string;
 
-  @ManyToOne(
-    () => Coin,
-    (coin) => coin.coinToTypes,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Coin, (coin) => coin.coinToTypes, { onDelete: 'CASCADE' })
   coin: Coin;
 
-  @OneToMany(
-    () => CoinToType,
-    (coinToType) => coinToType.coinId,
-  )
+  @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
   placeToCoinTypes: CoinToType[];
 
-  @OneToMany(
-    () => Pair,
-    (pair) => pair.fromId,
-  )
+  @OneToMany(() => Pair, (pair) => pair.fromId)
   pairsFrom: Pair[];
 
-  @OneToMany(
-    () => Pair,
-    (pair) => pair.toId,
-  )
+  @OneToMany(() => Pair, (pair) => pair.toId)
   pairsTo: Pair[];
 }

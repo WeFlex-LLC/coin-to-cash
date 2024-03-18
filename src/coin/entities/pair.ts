@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { CoinToType } from './coin-to-type.entity';
 import { Interval } from './interval.entity';
 
@@ -16,24 +22,18 @@ export class Pair {
   @Column({ type: 'bool', default: false })
   isActive: number;
 
-  @ManyToOne(
-    () => CoinToType,
-    (coinToType) => coinToType.pairsFrom,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => CoinToType, (coinToType) => coinToType.pairsFrom, {
+    onDelete: 'CASCADE',
+  })
   from: CoinToType;
 
-  @ManyToOne(
-    () => CoinToType,
-    (coinToType) => coinToType.pairsTo,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => CoinToType, (coinToType) => coinToType.pairsTo, {
+    onDelete: 'CASCADE',
+  })
   to: CoinToType;
 
-  @OneToMany(
-    () => Interval,
-    (interval) => interval.pairId,
-    { onDelete: 'CASCADE' },
-  )
-  intervals: Interval[]
+  @OneToMany(() => Interval, (interval) => interval.pairId, {
+    onDelete: 'CASCADE',
+  })
+  intervals: Interval[];
 }

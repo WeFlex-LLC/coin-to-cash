@@ -18,10 +18,6 @@ export class Interval {
   @Column('float')
   rate: number;
 
-  @ManyToOne(
-    () => Pair,
-    (pair) => pair.intervals,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Pair, (pair) => pair.intervals, { onDelete: 'CASCADE' })
   pair: Pair;
 }

@@ -13,17 +13,13 @@ export class PlaceToCoinType {
   @Column('int')
   count: number;
 
-  @ManyToOne(
-    () => CoinToType,
-    (coinToType) => coinToType.placeToCoinTypes,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => CoinToType, (coinToType) => coinToType.placeToCoinTypes, {
+    onDelete: 'CASCADE',
+  })
   coinToType: CoinToType;
 
-  @ManyToOne(
-    () => Place,
-    (place) => place.placeToCoinTypes,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => Place, (place) => place.placeToCoinTypes, {
+    onDelete: 'CASCADE',
+  })
   place: Place;
 }

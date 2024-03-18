@@ -4,15 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
-import { UserModule } from './user/user.module';
 import { CoinModule } from './coin/coin.module';
+import { AdminsModule } from './admins/admins.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: [
-        '.env',
-      ],
+      envFilePath: ['.env'],
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -31,8 +30,9 @@ import { CoinModule } from './coin/coin.module';
       inject: [ConfigService],
     }),
     TelegramBotModule,
-    UserModule,
-    CoinModule
+    AdminsModule,
+    AuthModule,
+    CoinModule,
   ],
   controllers: [AppController],
   providers: [AppService],

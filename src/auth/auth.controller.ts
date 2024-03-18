@@ -9,9 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {
-  LocalAdminAuthGuard,
-} from './guards/local-auth.guard';
+import { LocalAdminAuthGuard } from './guards/local-auth.guard';
 import { JwtAdminRefreshAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')

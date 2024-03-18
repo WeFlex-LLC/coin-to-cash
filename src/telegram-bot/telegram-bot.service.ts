@@ -1,20 +1,12 @@
-import {
-    Update,
-    Ctx,
-    Start,
-    Help,
-    On,
-    Hears,
-  } from 'nestjs-telegraf';
+import { Update, Ctx, Start, Help, On, Hears } from 'nestjs-telegraf';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 @Update()
 export class TelegramBotService {
-
   @Start()
   async start(@Ctx() ctx) {
-    console.log(ctx.update.message.from)
+    console.log(ctx.update.message.from);
     await ctx.reply('Welcome');
   }
 

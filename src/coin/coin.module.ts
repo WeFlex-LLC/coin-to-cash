@@ -11,7 +11,14 @@ import { Interval } from './entities/interval.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Coin, Place, CoinToType, PlaceToCoinType, Pair, Interval]),
+    TypeOrmModule.forFeature([
+      Coin,
+      Place,
+      CoinToType,
+      PlaceToCoinType,
+      Pair,
+      Interval,
+    ]),
   ],
   controllers: [CoinController],
   providers: [CoinService],
