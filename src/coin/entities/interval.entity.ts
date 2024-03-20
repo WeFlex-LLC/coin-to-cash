@@ -1,15 +1,18 @@
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { Pair } from './pair';
 
 @Entity('interval')
 export class Interval {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column('int')
   pairId: number;
 
-  @Column('int')
+  @Column({ type: 'int', nullable: true })
   from: number;
 
-  @Column('int')
+  @Column({ type: 'int', nullable: true })
   to: number;
 
   @Column('int')

@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CoinToType } from './coin-to-type.entity';
+import { Pair } from './pair';
 
 @Entity('coin')
 export class Coin {
@@ -13,13 +14,7 @@ export class Coin {
   id: number;
 
   @Column('varchar')
-  nameEn: string;
-
-  @Column('varchar')
-  nameAm: string;
-
-  @Column('varchar')
-  nameRu: string;
+  name: string;
 
   @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
   coinToTypes: CoinToType[];

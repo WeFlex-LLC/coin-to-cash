@@ -13,13 +13,13 @@ export class Place {
   id: number;
 
   @Column('varchar')
-  nameEn: string;
+  name_en: string;
 
   @Column('varchar')
-  nameAm: string;
+  name_am: string;
 
   @Column('varchar')
-  nameRu: string;
+  name_ru: string;
 
   @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
   placeToCoinTypes: CoinToType[];

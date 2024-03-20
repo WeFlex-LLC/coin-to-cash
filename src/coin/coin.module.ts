@@ -22,5 +22,6 @@ import { Interval } from './entities/interval.entity';
   ],
   controllers: [CoinController],
   providers: [CoinService],
+  exports: [CoinService]
 })
 export class CoinModule {}

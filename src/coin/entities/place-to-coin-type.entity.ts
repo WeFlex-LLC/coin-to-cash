@@ -5,13 +5,10 @@ import { Place } from './place.entity';
 @Entity('place_coin_type')
 export class PlaceToCoinType {
   @PrimaryColumn()
-  coinTypeId: number;
+  coinToTypeId: number;
 
   @PrimaryColumn()
   placeId: number;
-
-  @Column('int')
-  count: number;
 
   @ManyToOne(() => CoinToType, (coinToType) => coinToType.placeToCoinTypes, {
     onDelete: 'CASCADE',

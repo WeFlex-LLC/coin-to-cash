@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { CoinToType } from './coin-to-type.entity';
 import { Interval } from './interval.entity';
+import { Coin } from './coin.entity';
 
 @Entity('pair')
 export class Pair {
@@ -23,12 +24,12 @@ export class Pair {
   isActive: number;
 
   @ManyToOne(() => CoinToType, (coinToType) => coinToType.pairsFrom, {
-    onDelete: 'CASCADE',
+  onDelete: 'CASCADE',
   })
   from: CoinToType;
 
   @ManyToOne(() => CoinToType, (coinToType) => coinToType.pairsTo, {
-    onDelete: 'CASCADE',
+  onDelete: 'CASCADE',
   })
   to: CoinToType;
 

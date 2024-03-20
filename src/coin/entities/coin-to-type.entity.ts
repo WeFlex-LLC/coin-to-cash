@@ -23,6 +23,18 @@ export class CoinToType {
   })
   type: string;
 
+  @Column('varchar')
+  name_en: string;
+
+  @Column('varchar')
+  name_am: string;
+
+  @Column('varchar')
+  name_ru: string;
+
+  @Column('int')
+  count: number;
+
   @ManyToOne(() => Coin, (coin) => coin.coinToTypes, { onDelete: 'CASCADE' })
   coin: Coin;
 
