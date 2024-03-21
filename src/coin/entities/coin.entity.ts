@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CoinToType } from './coin-to-type.entity';
-import { Pair } from './pair';
 
 @Entity('coin')
 export class Coin {

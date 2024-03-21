@@ -1,4 +1,4 @@
-import { Lang } from "../enums/lang.enum";
+import { Lang } from '../enums/lang.enum';
 
 export class CreateUserDto {
   telegramId: number;

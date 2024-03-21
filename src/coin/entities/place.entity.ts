@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CoinToType } from './coin-to-type.entity';
+import { Order } from 'src/users/entities/order.entity';
 
 @Entity('place')
 export class Place {
@@ -23,6 +24,9 @@ export class Place {
 
   @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
   placeToCoinTypes: CoinToType[];
+
+  @OneToMany(() => Order, (order) => order.place)
+  orders: Order[];
 
   @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;

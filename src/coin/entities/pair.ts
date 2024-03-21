@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { CoinToType } from './coin-to-type.entity';
 import { Interval } from './interval.entity';
-import { Coin } from './coin.entity';
+import { Order } from 'src/users/entities/order.entity';
 
 @Entity('pair')
 export class Pair {
@@ -23,13 +23,16 @@ export class Pair {
   @Column({ type: 'bool', default: false })
   isActive: number;
 
+  @Column('float')
+  rate: number;
+
   @ManyToOne(() => CoinToType, (coinToType) => coinToType.pairsFrom, {
-  onDelete: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   from: CoinToType;
 
   @ManyToOne(() => CoinToType, (coinToType) => coinToType.pairsTo, {
-  onDelete: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   to: CoinToType;
 
@@ -37,4 +40,9 @@ export class Pair {
     onDelete: 'CASCADE',
   })
   intervals: Interval[];
+
+  @OneToMany(() => Order, (order) => order.pair, {
+    onDelete: 'CASCADE',
+  })
+  orders: Order[];
 }

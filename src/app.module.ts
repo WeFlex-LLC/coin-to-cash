@@ -11,6 +11,7 @@ import { CoinModule } from './coin/coin.module';
 import { AdminsModule } from './admins/admins.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { LanguagesModule } from './languages/languages.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     CoinModule,
     UsersModule,
+    LanguagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
