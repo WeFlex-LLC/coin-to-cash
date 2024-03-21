@@ -1,2 +1,19 @@
 {
+    "choose_command": "Choose command",
+    "new_exchange": "New exchange",
+    "make_order": "Make order",
+    "you_should_pay": "You should pay",
+    "you_will_get": "You will get",
+    "select_language": "Select language",
+    "language_changed": "Language changed",
+    "what_you_give": "What you give?",
+    "empty": "Empty",
+    "give": "Give",
+    "take": "Take",
+    "select_option": "Select option",
+    "your_city": "Your city",
+    "what_you_want": "What you want?",
+    "write_the_amount": "Write the amount you want to",
+    "your_order_number": "Your order number:",
+    "contact_you": "We will contact you."
 }

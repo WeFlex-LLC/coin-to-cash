@@ -1,2 +1,19 @@
 {
+    "choose_command": "Choose command",
+    "new_exchange": "Նոր փոխանակում",
+    "make_order": "Կատարել պատվեր",
+    "you_should_pay": "Դուք պետք է վճարեք",
+    "you_will_get": "Դուք կստանաք",
+    "select_language": "Ընտրել լեզուն",
+    "language_changed": "Լեզուն փոխվել է",
+    "what_you_give": "Ի՞նչ եք տալիս",
+    "empty": "Դատարկ",
+    "give": "Տալ",
+    "take": "Վերցնել",
+    "select_option": "Ընտրեք տարբերակը",
+    "your_city": "Ձեր քաղաքը",
+    "what_you_want": "Ի՞նչ եք ուզում",
+    "write_the_amount": "Գրեք այն գումարը, որը ցանկանում եք",
+    "your_order_number": "Ձեր պատվերի համարը.",
+    "contact_you": "Մենք կկապվենք ձեզ հետ:"
 }

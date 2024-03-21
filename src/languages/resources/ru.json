@@ -1,2 +1,19 @@
 {
+    "choose_command": "Choose command",
+    "new_exchange": "Новый обмен",
+    "make_order": "Сделать заказ",
+    "you_should_pay": "Вы должны заплатить",
+    "you_will_get": "Вы получите",
+    "select_language": "Выберите язык",
+    "language_changed": "Язык изменен",
+    "what_you_give": "Что вы даете?",
+    "empty": "Пустой",
+    "give": "Давать",
+    "take": "Брать",
+    "select_option": "Выберите вариант",
+    "your_city": "Ваш город",
+    "what_you_want": "Что вы хотите?",
+    "write_the_amount": "Напишите сумму, которую хотите",
+    "your_order_number": "Ваш номер заказа:",
+    "contact_you": "Мы свяжемся с вами."
 }
