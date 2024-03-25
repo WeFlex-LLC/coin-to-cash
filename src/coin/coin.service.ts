@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Coin } from './entities/coin.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +7,10 @@ import { Place } from './entities/place.entity';
 import { PlaceToCoinType } from './entities/place-to-coin-type.entity';
 import { Pair } from './entities/pair';
 import { Interval } from './entities/interval.entity';
+import { CreateCoinDto } from './dto/create-coin.dto';
+import { UpdateCoinDto } from './dto/update-coin.dto';
+import { CreateCoinToTypeDto } from './dto/create-coin-to-type.dto';
+import { UpdateCoinToTypeDto } from './dto/update-coin-to-type.dto';
 
 @Injectable()
 export class CoinService {
@@ -96,5 +100,88 @@ export class CoinService {
       ])
       .where('placeToCoinType.coinToTypeId = :coinToTypeId', { coinToTypeId })
       .getRawMany()) as Place[];
+  }
+
+  async findCoins(){
+    return await this.coinRepository
+      .createQueryBuilder('coin')
+      .getMany();
+  }
+
+  async findCoinToTypes(){
+    return await this.coinToTypeRepository
+      .createQueryBuilder('coinToType')
+      .getMany();
+  }
+
+  async findCoinById(id: number){
+    return await this.coinRepository.findOneBy({ id });
+  }
+
+  async findCoinToTypeById(id: number){
+    return await this.coinToTypeRepository.findOneBy({ id });
+  }
+
+  async createCoin(createCoinDto: CreateCoinDto){
+    return await this.coinRepository.save(createCoinDto);
+  }
+
+  async createCoinToType(createCoinToTypeDto: CreateCoinToTypeDto){
+    const { coinId, ...payload } = createCoinToTypeDto; 
+
+    return await this.coinToTypeRepository.save({
+      ...payload,
+      coin: {
+        id: coinId
+      }
+    });
+  }
+
+  async updateCoin(id: number, updateCoinDto: UpdateCoinDto){
+    const coin = await this.findCoinById(id);
+
+    if(!coin) throw new NotFoundException('Coin Not Found');
+
+    await this.coinRepository.update({ id }, updateCoinDto);
+
+    return {
+      success: true
+    }
+  }
+
+  async updateCoinToType(id: number, updateCoinToTypeDto: UpdateCoinToTypeDto){
+    const coinToType = await this.findCoinToTypeById(id);
+
+    if(!coinToType) throw new NotFoundException('Coin with Type Not Found');
+
+    await this.coinToTypeRepository.update({ id }, updateCoinToTypeDto);
+
+    return {
+      success: true
+    }
+  }
+
+  async deleteCoin(id: number){
+    const coin = await this.findCoinById(id);
+
+    if(!coin) throw new NotFoundException('Coin Not Found');
+
+    await this.coinRepository.delete({ id });
+
+    return {
+      success: true
+    }
+  }
+
+  async deleteCoinToType(id: number){
+    const coinToType = await this.findCoinToTypeById(id);
+
+    if(!coinToType) throw new NotFoundException('Coin with Type Not Found');
+
+    await this.coinToTypeRepository.delete({ id });
+
+    return {
+      success: true
+    }
   }
 }

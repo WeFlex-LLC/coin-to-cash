@@ -21,7 +21,7 @@ export class CoinToType {
     type: 'enum',
     enum: CoinType,
   })
-  type: string;
+  type: CoinType;
 
   @Column('varchar')
   name_en: string;
