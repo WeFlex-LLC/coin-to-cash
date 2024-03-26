@@ -1,8 +1,9 @@
 {
   "version": 2,
+  "outputDirectory": "dist"
   "builds": [
     {
-      "src": "src/main.ts",
+      "src": "dist/main.js",
       "use": "@vercel/node"
     }
   ],
