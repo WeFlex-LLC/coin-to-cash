@@ -5,11 +5,5 @@
   ],
   "routes": [
     { "src": "/(.*)", "dest": "package.json" }
-  ],
-  "build": {
-    "functions": {
-      "src": "src/**/*.ts",
-      "output": "dist"
-    }
-  }
+  ]
 }
