@@ -59,7 +59,7 @@ export class AdminsService {
         adminRole: AdminRole.Admin,
         role: filter?.role || '',
       })
-      .orderBy('createdAt', 'DESC')
+      .orderBy('"createdAt"', 'DESC')
       .getMany();
 
     return admins;

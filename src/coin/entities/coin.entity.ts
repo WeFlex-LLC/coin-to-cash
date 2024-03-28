@@ -15,7 +15,7 @@ export class Coin {
   @Column('varchar')
   name: string;
 
-  @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
+  @OneToMany(() => CoinToType, (coinToType) => coinToType.coin)
   coinToTypes: CoinToType[];
 
   @CreateDateColumn({ name: 'createdAt' })

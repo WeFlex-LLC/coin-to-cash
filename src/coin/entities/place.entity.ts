@@ -22,7 +22,7 @@ export class Place {
   @Column('varchar')
   name_ru: string;
 
-  @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
+  @OneToMany(() => CoinToType, (coinToType) => coinToType.coin)
   placeToCoinTypes: CoinToType[];
 
   @OneToMany(() => Order, (order) => order.place)

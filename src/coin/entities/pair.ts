@@ -21,7 +21,7 @@ export class Pair {
   toId: number;
 
   @Column({ type: 'bool', default: false })
-  isActive: number;
+  isActive: boolean;
 
   @Column('float')
   rate: number;
@@ -36,7 +36,7 @@ export class Pair {
   })
   to: CoinToType;
 
-  @OneToMany(() => Interval, (interval) => interval.pairId, {
+  @OneToMany(() => Interval, (interval) => interval.pair, {
     onDelete: 'CASCADE',
   })
   intervals: Interval[];

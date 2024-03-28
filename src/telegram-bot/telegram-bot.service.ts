@@ -138,18 +138,20 @@ export class TelegramBotService {
     if (this.pendingOrders[id]) {
       this.pendingOrders[id].amount = amount;
       const { pairId, option } = this.pendingOrders[id];
-      const interval = await this.coinService.getInterval(pairId, amount);
-      const pair = await this.coinService.getPairInfo(pairId);
+      const interval = await this.coinService.findInterval(pairId, amount);
+      const pair = await this.coinService.findPairById(pairId);
 
       let price;
 
       if (option == ExchangeOption.Take){
-        price = ((amount - interval.fixedPrice) * 100) / ((100 + interval.percent) * pair.rate);
+        price = (amount / pair.rate + interval.fixedPrice) * 100 / (100 - interval.percent);
         price = Math.ceil(price);
         
         text = `${this.languagesService.library[user.lang].you_should_pay} ${price} ${pair.from['name_' + user.lang]}`;
       }else{
-        price = amount * pair.rate * (1 - interval.percent / 100) - interval.fixedPrice;
+        const commission = amount * interval.percent / 100;
+        
+        price = (amount - commission - interval.fixedPrice) * pair.rate;
         price = Math.ceil(price);
 
         text = `${this.languagesService.library[user.lang].you_will_get} ${price} ${pair.to['name_' + user.lang]}`;
@@ -205,7 +207,7 @@ export class TelegramBotService {
   @Action(/buyCoin\((\d+)\)/)
   async buyCoin(@Ctx() ctx) {
     const toId = ctx.match[1];
-    const coinToPairsFrom = await this.coinService.getCoinPairs(toId);
+    const coinToPairsFrom = await this.coinService.findCoinToTypesByToId(toId);
     const user = await this.usersService.getUserByTelegramId(
       ctx.update.callback_query.from.id,
     );
@@ -236,7 +238,7 @@ export class TelegramBotService {
   @Action(/selectOption\((\d+)\)/)
   async selectOption(@Ctx() ctx) {
     const pairId = ctx.match[1];
-    const pair = await this.coinService.getPairInfo(pairId);
+    const pair = await this.coinService.findPairById(pairId);
     const user = await this.usersService.getUserByTelegramId(
       ctx.update.callback_query.from.id,
     );
@@ -270,7 +272,7 @@ export class TelegramBotService {
   async registerPair(@Ctx() ctx) {
     const pairId = ctx.match[1];
     const option = +ctx.match[2] as ExchangeOption;
-    const pair = await this.coinService.getPairInfo(pairId);
+    const pair = await this.coinService.findPairById(pairId);
     const user = await this.usersService.getUserByTelegramId(
       ctx.update.callback_query.from.id,
     );
@@ -281,7 +283,7 @@ export class TelegramBotService {
     this.pendingOrders[user.telegramId] = { pairId: pairId, option };
 
     if (pair.from.type == CoinType.Cash || pair.to.type == CoinType.Cash) {
-      const places = await this.coinService.getPlaces(
+      const places = await this.coinService.findPlacesByCoinToTypeId(
         option == ExchangeOption.Take ? pair.toId : pair.fromId,
       );
 
@@ -302,7 +304,7 @@ export class TelegramBotService {
 
       await ctx.reply(this.languagesService.library[user.lang].your_city, options);
     } else {
-      const coinToType = await this.coinService.getCoinToTypeInfo(
+      const coinToType = await this.coinService.findCoinToTypeById(
         this.pendingOrders[user.telegramId].option == ExchangeOption.Take
           ? pair.toId
           : pair.fromId,
@@ -320,10 +322,10 @@ export class TelegramBotService {
     const user = await this.usersService.getUserByTelegramId(
       ctx.update.callback_query.from.id,
     );
-    const pair = await this.coinService.getPairInfo(
+    const pair = await this.coinService.findPairById(
       this.pendingOrders[user.telegramId].pairId,
     );
-    const coinToType = await this.coinService.getCoinToTypeInfo(
+    const coinToType = await this.coinService.findCoinToTypeById(
       this.pendingOrders[user.telegramId].option == ExchangeOption.Take
         ? pair.toId
         : pair.fromId,
@@ -337,7 +339,7 @@ export class TelegramBotService {
   }
 
   async showWhatYouWant(@Ctx() ctx, user: User) {
-    const coinToTypes = await this.coinService.getCoinToTypes();
+    const coinToTypes = await this.coinService.findCoinToTypes();
     const keyboard = chunk(
       coinToTypes.map((e) => ({
         text: e['name_' + user.lang],

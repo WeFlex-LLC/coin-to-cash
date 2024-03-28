@@ -38,12 +38,12 @@ export class CoinToType {
   @ManyToOne(() => Coin, (coin) => coin.coinToTypes, { onDelete: 'CASCADE' })
   coin: Coin;
 
-  @OneToMany(() => CoinToType, (coinToType) => coinToType.coinId)
+  @OneToMany(() => CoinToType, (coinToType) => coinToType.coin)
   placeToCoinTypes: CoinToType[];
 
-  @OneToMany(() => Pair, (pair) => pair.fromId)
+  @OneToMany(() => Pair, (pair) => pair.from)
   pairsFrom: Pair[];
 
-  @OneToMany(() => Pair, (pair) => pair.toId)
+  @OneToMany(() => Pair, (pair) => pair.to)
   pairsTo: Pair[];
 }

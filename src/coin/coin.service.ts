@@ -11,6 +11,10 @@ import { CreateCoinDto } from './dto/create-coin.dto';
 import { UpdateCoinDto } from './dto/update-coin.dto';
 import { CreateCoinToTypeDto } from './dto/create-coin-to-type.dto';
 import { UpdateCoinToTypeDto } from './dto/update-coin-to-type.dto';
+import { CreatePlaceDto } from './dto/create-place.dto';
+import { UpdatePlaceDto } from './dto/update-place.dto';
+import { CreatePairDto } from './dto/create-pair.dto';
+import { UpdatePairDto } from './dto/update-pair.dto';
 
 @Injectable()
 export class CoinService {
@@ -34,32 +38,56 @@ export class CoinService {
     private intervalRepository: Repository<Interval>,
   ) {}
 
-  async getCoinToTypes() {
-    const coinToTypes = await this.coinToTypeRepository.find();
+  async findCoins(filter?: { name?: string }){
+    let where = '';
 
-    return coinToTypes;
-  }
+    if(filter?.name)
+      where = 'coin.name like :name';
 
-  async getCoinPairs(coinToTypeId: number): Promise<any[]> {
-    return await this.pairRepository
-      .createQueryBuilder('pair')
-      .leftJoin('pair.from', 'coinToType')
-      .select([
-        'coinToType.id as id',
-        'pair.id as pairId',
-        'coinToType.coinId as coinId',
-        'coinToType.name_en as name_en',
-        'coinToType.name_am as name_am',
-        'coinToType.name_ru as name_ru',
-        'coinToType.type as type',
-      ])
-      .where('pair.toId = :coinToTypeId and pair.isActive = 1', {
-        coinToTypeId,
+    return await this.coinRepository
+      .createQueryBuilder('coin')
+      .where(where)
+      .setParameters({
+        name: `%${filter?.name || ''}%`
       })
-      .getRawMany();
+      .getMany();
   }
 
-  async getPairInfo(pairId: number) {
+  async findCoinById(id: number){
+    const coin = await this.coinRepository.findOne({ where: { id }, relations: { coinToTypes: true } });
+
+    return coin;
+  }
+
+  async findCoinToTypes(filter?: { exclude?: string[] }){
+    let where = '';
+
+    if(filter?.exclude)
+      where += 'coinToType.id NOT IN (:...exclude)';
+
+    return await this.coinToTypeRepository
+      .createQueryBuilder('coinToType')
+      .where(where, {
+        exclude: filter?.exclude || []
+      })
+      .getMany();
+  }
+
+  async findCoinToTypeById(coinToTypeId: number){
+    return await this.coinToTypeRepository.findOneBy({ id: coinToTypeId });
+  }
+
+  async findPlaces(){
+    return await this.placeRepository
+      .createQueryBuilder('place')
+      .getMany();
+  }
+
+  async findPlaceById(placeId: number){
+    return await this.placeRepository.findOneBy({ id: placeId });
+  }
+
+  async findPairById(pairId: number) {
     return await this.pairRepository
       .createQueryBuilder('pair')
       .leftJoinAndSelect('pair.from', 'coinToType1')
@@ -68,14 +96,58 @@ export class CoinService {
       .getOne();
   }
 
-  async getCoinToTypeInfo(coinToTypeId: number) {
-    return await this.coinToTypeRepository
-      .createQueryBuilder('coinToType')
-      .where('coinToType.id = :coinToTypeId', { coinToTypeId })
-      .getOne();
+  async findPairs(filter?: { toId?: number, fromId?: number }, join?: { to?: boolean, from?: boolean }): Promise<Pair[]> {
+    let where = '';
+
+    if(filter?.toId)
+      where +=  'pair.toId = :toId';
+
+    if(filter?.fromId)
+      where += where ? ' AND ' : '' +  'pair.fromId = :fromId';
+
+    const pairs = await this.pairRepository
+      .createQueryBuilder('pair')
+      .where(where, {
+        toId: filter.toId,
+        fromId: filter.fromId
+      })
+
+    if(join?.to)
+      pairs.leftJoinAndSelect('pair.to', 'to');
+
+    if(join?.from)
+      pairs.leftJoinAndSelect('pair.from', 'from');
+
+    return pairs.getMany();
   }
 
-  async getInterval(pairId: number, amount: number) {
+  async findCoinToTypesByToId(toId: number): Promise<any[]> {
+    let where = 'pair.isActive = :isActive AND pair.toId = :toId';
+      
+    const pairs = await this.pairRepository
+      .createQueryBuilder('pair')
+      .leftJoin('pair.from', 'fromCoinToType')
+      .select([
+        'coinToType.id as "id"',
+        'pair.id as "pairId"',
+        'pair.fromId as "fromId"',
+        'pair.toId as "toId"',
+        'coinToType.coinId as "coinId"',
+        'coinToType.name_en as "name_en"',
+        'coinToType.name_am as "name_am"',
+        'coinToType.name_ru as "name_ru"',
+        'coinToType.type as "type"',
+      ])
+      .where(where, {
+        toId,
+        isActive: true,
+      })
+      .getRawMany();
+
+    return pairs;
+  }
+
+  async findInterval(pairId: number, amount: number) {
     return await this.intervalRepository
       .createQueryBuilder('interval')
       .where(
@@ -88,38 +160,18 @@ export class CoinService {
       .getOne();
   }
 
-  async getPlaces(coinToTypeId: number) {
+  async findPlacesByCoinToTypeId(coinToTypeId: number) {
     return (await this.placeToCoinTypeRepository
       .createQueryBuilder('placeToCoinType')
       .leftJoin('placeToCoinType.place', 'place')
       .select([
-        'place.id as id',
-        'place.name_en as name_en',
-        'place.name_am as name_am',
-        'place.name_ru as name_ru',
+        'place.id as "id"',
+        'place.name_en as "name_en"',
+        'place.name_am as "name_am"',
+        'place.name_ru as "name_ru"',
       ])
       .where('placeToCoinType.coinToTypeId = :coinToTypeId', { coinToTypeId })
       .getRawMany()) as Place[];
-  }
-
-  async findCoins(){
-    return await this.coinRepository
-      .createQueryBuilder('coin')
-      .getMany();
-  }
-
-  async findCoinToTypes(){
-    return await this.coinToTypeRepository
-      .createQueryBuilder('coinToType')
-      .getMany();
-  }
-
-  async findCoinById(id: number){
-    return await this.coinRepository.findOneBy({ id });
-  }
-
-  async findCoinToTypeById(id: number){
-    return await this.coinToTypeRepository.findOneBy({ id });
   }
 
   async createCoin(createCoinDto: CreateCoinDto){
@@ -128,13 +180,21 @@ export class CoinService {
 
   async createCoinToType(createCoinToTypeDto: CreateCoinToTypeDto){
     const { coinId, ...payload } = createCoinToTypeDto; 
-
+    
     return await this.coinToTypeRepository.save({
       ...payload,
       coin: {
         id: coinId
       }
     });
+  }
+
+  async createPlace(createPlaceDto: CreatePlaceDto){
+    return await this.placeRepository.save(createPlaceDto);
+  }
+
+  async createPair(createPairDto: CreatePairDto){
+    return await this.pairRepository.save(createPairDto);
   }
 
   async updateCoin(id: number, updateCoinDto: UpdateCoinDto){
@@ -149,12 +209,36 @@ export class CoinService {
     }
   }
 
-  async updateCoinToType(id: number, updateCoinToTypeDto: UpdateCoinToTypeDto){
-    const coinToType = await this.findCoinToTypeById(id);
+  async updateCoinToType(coinToTypeId: number, updateCoinToTypeDto: UpdateCoinToTypeDto){
+    const coinToType = await this.findCoinToTypeById(coinToTypeId);
 
     if(!coinToType) throw new NotFoundException('Coin with Type Not Found');
 
-    await this.coinToTypeRepository.update({ id }, updateCoinToTypeDto);
+    await this.coinToTypeRepository.update({ id: coinToTypeId }, updateCoinToTypeDto);
+
+    return {
+      success: true
+    }
+  }
+
+  async updatePlace(placeId: number, updatePlaceDto: UpdatePlaceDto){
+    const place = await this.findPlaceById(placeId);
+
+    if(!place) throw new NotFoundException('Place Not Found');
+
+    await this.placeRepository.update({ id: placeId }, updatePlaceDto);
+
+    return {
+      success: true
+    }
+  }
+
+  async updatePair(pairId: number, updatePairDto: UpdatePairDto){
+    const pair = await this.findPairById(pairId);
+
+    if(!pair) throw new NotFoundException('Pair Not Found');
+
+    await this.pairRepository.update({ id: pairId }, updatePairDto);
 
     return {
       success: true
@@ -173,12 +257,36 @@ export class CoinService {
     }
   }
 
-  async deleteCoinToType(id: number){
-    const coinToType = await this.findCoinToTypeById(id);
+  async deleteCoinToType(coinToTypeId: number){
+    const coinToType = await this.findCoinToTypeById(coinToTypeId);
 
     if(!coinToType) throw new NotFoundException('Coin with Type Not Found');
 
-    await this.coinToTypeRepository.delete({ id });
+    await this.coinToTypeRepository.delete({ id: coinToTypeId });
+
+    return {
+      success: true
+    }
+  }
+
+  async deletePlace(placeId: number){
+    const place = await this.findPlaceById(placeId);
+
+    if(!place) throw new NotFoundException('Place Not Found');
+
+    await this.placeRepository.delete({ id: placeId });
+
+    return {
+      success: true
+    }
+  }
+
+  async deletePair(pairId: number){
+    const pair = await this.findPairById(pairId);
+
+    if(!pair) throw new NotFoundException('Pair Not Found');
+
+    await this.pairRepository.delete({ id: pairId });
 
     return {
       success: true
