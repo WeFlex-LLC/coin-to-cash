@@ -15,6 +15,8 @@ import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
 import { CreatePairDto } from './dto/create-pair.dto';
 import { UpdatePairDto } from './dto/update-pair.dto';
+import { CreateIntervalDto } from './dto/create-interval.dto';
+import { UpdateIntervalDto } from './dto/update-interval.dto';
 
 @Injectable()
 export class CoinService {
@@ -111,6 +113,7 @@ export class CoinService {
         toId: filter.toId,
         fromId: filter.fromId
       })
+      .orderBy('pair.id')
 
     if(join?.to)
       pairs.leftJoinAndSelect('pair.to', 'to');
@@ -147,7 +150,7 @@ export class CoinService {
     return pairs;
   }
 
-  async findInterval(pairId: number, amount: number) {
+  async findOneInterval(pairId: number, amount: number) {
     return await this.intervalRepository
       .createQueryBuilder('interval')
       .where(
@@ -158,6 +161,10 @@ export class CoinService {
         amount,
       })
       .getOne();
+  }
+
+  async findIntervals(pairId: number){
+    return await this.intervalRepository.findBy({ pairId });
   }
 
   async findPlacesByCoinToTypeId(coinToTypeId: number) {
@@ -195,6 +202,15 @@ export class CoinService {
 
   async createPair(createPairDto: CreatePairDto){
     return await this.pairRepository.save(createPairDto);
+  }
+
+  async createInterval(pairId: number, createIntervalDto: CreateIntervalDto){
+    return await this.intervalRepository.save({
+      pair: {
+        id: pairId
+      },
+      ...createIntervalDto
+    });
   }
 
   async updateCoin(id: number, updateCoinDto: UpdateCoinDto){
@@ -245,6 +261,18 @@ export class CoinService {
     }
   }
 
+  async updateInterval(intervalId: number, updateIntervalDto: UpdateIntervalDto){
+    const interval = await this.intervalRepository.findOneBy({ id: intervalId });
+
+    if(!interval) throw new NotFoundException('Interval Not Found');
+
+    await this.intervalRepository.update({ id: intervalId }, updateIntervalDto);
+
+    return {
+      success: true
+    }
+  }
+
   async deleteCoin(id: number){
     const coin = await this.findCoinById(id);
 
@@ -287,6 +315,18 @@ export class CoinService {
     if(!pair) throw new NotFoundException('Pair Not Found');
 
     await this.pairRepository.delete({ id: pairId });
+
+    return {
+      success: true
+    }
+  }
+
+  async deleteInterval(intervalId: number){
+    const interval = await this.intervalRepository.findOneBy({ id: intervalId });
+
+    if(!interval) throw new NotFoundException('Interval Not Found');
+
+    await this.intervalRepository.delete({ id: intervalId });
 
     return {
       success: true

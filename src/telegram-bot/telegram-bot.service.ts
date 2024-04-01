@@ -138,7 +138,7 @@ export class TelegramBotService {
     if (this.pendingOrders[id]) {
       this.pendingOrders[id].amount = amount;
       const { pairId, option } = this.pendingOrders[id];
-      const interval = await this.coinService.findInterval(pairId, amount);
+      const interval = await this.coinService.findOneInterval(pairId, amount);
       const pair = await this.coinService.findPairById(pairId);
 
       let price;
