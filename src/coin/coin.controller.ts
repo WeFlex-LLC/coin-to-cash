@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CoinService } from './coin.service';
 import { JwtAdminAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateCoinDto } from './dto/create-coin.dto';
@@ -17,26 +27,21 @@ export class CoinController {
   constructor(private readonly coinService: CoinService) {}
 
   @Get()
-  findCoins(
-    @Query('name') name: string
-  ){
+  findCoins(@Query('name') name: string) {
     return this.coinService.findCoins({ name });
   }
 
   @Get('types')
-  findCoinToTypes(
-    @Query('exclude') exclude: string
-  ){
-    let filter: { exclude?: string[] } = { };
+  findCoinToTypes(@Query('exclude') exclude: string) {
+    const filter: { exclude?: string[] } = {};
 
-    if(exclude)
-      filter.exclude = exclude.split(',');
+    if (exclude) filter.exclude = exclude.split(',');
 
     return this.coinService.findCoinToTypes(filter);
   }
 
   @Get('places')
-  findPlaces(){
+  findPlaces() {
     return this.coinService.findPlaces();
   }
 
@@ -45,25 +50,31 @@ export class CoinController {
   findPairs(
     @Query('fromId') fromId: string,
     @Query('toId') toId: string,
-    @Query('join') join: string
-  ){
-    let filter: { fromId?: number, toId?: number } = { fromId: +fromId, toId: +toId };
+    @Query('join') join: string,
+  ) {
+    const filter: { fromId?: number; toId?: number } = {
+      fromId: +fromId,
+      toId: +toId,
+    };
 
-    return this.coinService.findPairs(filter, { to: join?.includes('to'), from: join?.includes('from') });
+    return this.coinService.findPairs(filter, {
+      to: join?.includes('to'),
+      from: join?.includes('from'),
+    });
   }
 
   @Get('pairs/:id/intervals')
-  findIntervals(@Param('id') id: string){
+  findIntervals(@Param('id') id: string) {
     return this.coinService.findIntervals(+id);
   }
 
   @Get(':id')
-  findCoinById(@Param('id') id: string){
+  findCoinById(@Param('id') id: string) {
     return this.coinService.findCoinById(+id);
   }
 
   @Get('types/:id')
-  findCoinToTypeById(@Param('id') id: string){
+  findCoinToTypeById(@Param('id') id: string) {
     return this.coinService.findCoinToTypeById(+id);
   }
 
@@ -71,40 +82,33 @@ export class CoinController {
   @UseGuards(JwtAdminAuthGuard)
   findPairsByCoinToTypeId(
     @Param('id') id: string,
-    @Query('join') join: string
-  ){
-    let filter: { fromId?: number } = { fromId: +id };
+    @Query('join') join: string,
+  ) {
+    const filter: { fromId?: number } = { fromId: +id };
 
     return this.coinService.findPairs(filter, { to: join?.includes('to') });
   }
 
   @Get('places/:id')
-  findPlaceById(@Param('id') id: string){
+  findPlaceById(@Param('id') id: string) {
     return this.coinService.findPlaceById(+id);
   }
 
   @Post()
   @UseGuards(JwtAdminAuthGuard)
-  createCoin(
-    @Body() createCoinDto: CreateCoinDto,
-  ){
+  createCoin(@Body() createCoinDto: CreateCoinDto) {
     return this.coinService.createCoin(createCoinDto);
   }
 
   @Post('types')
   @UseGuards(JwtAdminAuthGuard)
-  createCoinToType(
-    @Body() createCoinToTypeDto: CreateCoinToTypeDto,
-  ){
+  createCoinToType(@Body() createCoinToTypeDto: CreateCoinToTypeDto) {
     return this.coinService.createCoinToType(createCoinToTypeDto);
   }
 
   @Post('types/:id/pairs')
   @UseGuards(JwtAdminAuthGuard)
-  createPair(
-    @Param('id') id: string,
-    @Body() createPairDto: CreatePairDto,
-  ){
+  createPair(@Param('id') id: string, @Body() createPairDto: CreatePairDto) {
     createPairDto.fromId = +id;
 
     return this.coinService.createPair(createPairDto);
@@ -113,25 +117,20 @@ export class CoinController {
   @Post('pairs/:id/intervals')
   createInterval(
     @Param('id') id: string,
-    @Body() createIntervalDto: CreateIntervalDto
-  ){
+    @Body() createIntervalDto: CreateIntervalDto,
+  ) {
     return this.coinService.createInterval(+id, createIntervalDto);
   }
 
   @Post('places')
   @UseGuards(JwtAdminAuthGuard)
-  createPlace(
-    @Body() createPlaceDto: CreatePlaceDto,
-  ){
+  createPlace(@Body() createPlaceDto: CreatePlaceDto) {
     return this.coinService.createPlace(createPlaceDto);
   }
 
   @Put(':id')
   @UseGuards(JwtAdminAuthGuard)
-  updateCoin(
-    @Param('id') id: string,
-    @Body() updateCoinDto: UpdateCoinDto,
-  ){
+  updateCoin(@Param('id') id: string, @Body() updateCoinDto: UpdateCoinDto) {
     return this.coinService.updateCoin(+id, updateCoinDto);
   }
 
@@ -140,70 +139,56 @@ export class CoinController {
   updateCoinToType(
     @Param('id') id: string,
     @Body() updateCoinToTypeDto: UpdateCoinToTypeDto,
-  ){
+  ) {
     return this.coinService.updateCoinToType(+id, updateCoinToTypeDto);
   }
 
   @Put('pairs/:id')
   @UseGuards(JwtAdminAuthGuard)
-  updatePair(
-    @Param('id') id: string,
-    @Body() updatePairDto: UpdatePairDto,
-  ){
+  updatePair(@Param('id') id: string, @Body() updatePairDto: UpdatePairDto) {
     return this.coinService.updatePair(+id, updatePairDto);
   }
 
   @Put('pairs/:pairId/intervals/:id')
   updateInterval(
     @Param('id') id: string,
-    @Body() updateIntervalDto: UpdateIntervalDto
-  ){
+    @Body() updateIntervalDto: UpdateIntervalDto,
+  ) {
     return this.coinService.updateInterval(+id, updateIntervalDto);
   }
 
   @Put('places/:id')
   @UseGuards(JwtAdminAuthGuard)
-  updatePlace(
-    @Param('id') id: string,
-    @Body() updatePlaceDto: UpdatePlaceDto,
-  ){
+  updatePlace(@Param('id') id: string, @Body() updatePlaceDto: UpdatePlaceDto) {
     return this.coinService.updatePlace(+id, updatePlaceDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAdminAuthGuard)
-  deleteCoin(
-    @Param('id') id: string,
-  ){
+  deleteCoin(@Param('id') id: string) {
     return this.coinService.deleteCoin(+id);
   }
 
   @Delete('types/:id')
   @UseGuards(JwtAdminAuthGuard)
-  deleteCoinToType(
-    @Param('id') id: string,
-  ){
+  deleteCoinToType(@Param('id') id: string) {
     return this.coinService.deleteCoinToType(+id);
   }
 
   @Delete('pairs/:pairId')
   @UseGuards(JwtAdminAuthGuard)
-  deletePair(
-    @Param('pairId') pairId: string,
-  ){
+  deletePair(@Param('pairId') pairId: string) {
     return this.coinService.deletePair(+pairId);
   }
 
   @Delete('pairs/:pairId/intervals/:id')
-  deleteInterval(@Param('id') id: string){
+  deleteInterval(@Param('id') id: string) {
     return this.coinService.deleteInterval(+id);
   }
 
   @Delete('places/:id')
   @UseGuards(JwtAdminAuthGuard)
-  deletePlace(
-    @Param('id') id: string,
-  ){
+  deletePlace(@Param('id') id: string) {
     return this.coinService.deletePlace(+id);
   }
 }

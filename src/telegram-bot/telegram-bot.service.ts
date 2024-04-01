@@ -143,23 +143,29 @@ export class TelegramBotService {
 
       let price;
 
-      if (option == ExchangeOption.Take){
-        price = (amount / pair.rate + interval.fixedPrice) * 100 / (100 - interval.percent);
+      if (option == ExchangeOption.Take) {
+        price =
+          ((amount / pair.rate + interval.fixedPrice) * 100) /
+          (100 - interval.percent);
         price = Math.ceil(price);
-        
+
         text = `${this.languagesService.library[user.lang].you_should_pay} ${price} ${pair.from['name_' + user.lang]}`;
-      }else{
-        const commission = amount * interval.percent / 100;
-        
+      } else {
+        const commission = (amount * interval.percent) / 100;
+
         price = (amount - commission - interval.fixedPrice) * pair.rate;
         price = Math.ceil(price);
 
         text = `${this.languagesService.library[user.lang].you_will_get} ${price} ${pair.to['name_' + user.lang]}`;
       }
 
-      options.reply_markup.keyboard.push([this.languagesService.library[user.lang].make_order]);
+      options.reply_markup.keyboard.push([
+        this.languagesService.library[user.lang].make_order,
+      ]);
     } else {
-      options.reply_markup.keyboard.push([this.languagesService.library[user.lang].new_exchange]);
+      options.reply_markup.keyboard.push([
+        this.languagesService.library[user.lang].new_exchange,
+      ]);
       text = this.languagesService.library[user.lang].new_exchange;
     }
 
@@ -168,7 +174,9 @@ export class TelegramBotService {
 
   @Hears('/changelang')
   async changeLang(@Ctx() ctx) {
-    const user = await this.usersService.getUserByTelegramId(ctx.update.message.from.id);
+    const user = await this.usersService.getUserByTelegramId(
+      ctx.update.message.from.id,
+    );
 
     const keyboard = [
       Object.values(Lang).map((e) => ({
@@ -184,7 +192,10 @@ export class TelegramBotService {
       },
     };
 
-    await ctx.reply(this.languagesService.library[user.lang].select_language, options);
+    await ctx.reply(
+      this.languagesService.library[user.lang].select_language,
+      options,
+    );
   }
 
   @Action(/selectLang\((.*?)\)/)
@@ -201,7 +212,10 @@ export class TelegramBotService {
       },
     };
 
-    await ctx.reply(this.languagesService.library[lang].language_changed, options);
+    await ctx.reply(
+      this.languagesService.library[lang].language_changed,
+      options,
+    );
   }
 
   @Action(/buyCoin\((\d+)\)/)
@@ -232,7 +246,10 @@ export class TelegramBotService {
       },
     };
 
-    await ctx.reply(this.languagesService.library[user.lang].what_you_give, options);
+    await ctx.reply(
+      this.languagesService.library[user.lang].what_you_give,
+      options,
+    );
   }
 
   @Action(/selectOption\((\d+)\)/)
@@ -265,7 +282,10 @@ export class TelegramBotService {
       },
     };
 
-    await ctx.reply(this.languagesService.library[user.lang].select_option, options);
+    await ctx.reply(
+      this.languagesService.library[user.lang].select_option,
+      options,
+    );
   }
 
   @Action(/registerPair\((\d+),(\d+)\)/)
@@ -302,7 +322,10 @@ export class TelegramBotService {
         },
       };
 
-      await ctx.reply(this.languagesService.library[user.lang].your_city, options);
+      await ctx.reply(
+        this.languagesService.library[user.lang].your_city,
+        options,
+      );
     } else {
       const coinToType = await this.coinService.findCoinToTypeById(
         this.pendingOrders[user.telegramId].option == ExchangeOption.Take
@@ -357,7 +380,10 @@ export class TelegramBotService {
       disable_notification: true,
     };
 
-    await ctx.reply(this.languagesService.library[user.lang].what_you_want, options);
+    await ctx.reply(
+      this.languagesService.library[user.lang].what_you_want,
+      options,
+    );
   }
 
   addTimeout(name: string, milliseconds: number) {

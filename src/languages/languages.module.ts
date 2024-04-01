@@ -3,6 +3,6 @@ import { LanguagesService } from './languages.service';
 
 @Module({
   providers: [LanguagesService],
-  exports: [LanguagesService]
+  exports: [LanguagesService],
 })
 export class LanguagesModule {}

@@ -18,7 +18,7 @@ import { LanguagesModule } from 'src/languages/languages.module';
     }),
     CoinModule,
     UsersModule,
-    LanguagesModule
+    LanguagesModule,
   ],
   controllers: [TelegramBotController],
   providers: [TelegramBotService],
