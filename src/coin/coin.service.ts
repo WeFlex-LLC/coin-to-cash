@@ -63,25 +63,75 @@ export class CoinService {
     return coin;
   }
 
-  async findCoinToTypes(filter?: { exclude?: string[] }) {
+  async findCoinToTypes(filter?: { exclude?: string[], placeId?: number }) {
     let where = '';
+    let repository;
 
     if (filter?.exclude) where += 'coinToType.id NOT IN (:...exclude)';
 
-    return await this.coinToTypeRepository
+    if (filter?.placeId) where += where.length ? ' AND ' : '' + 'placeToCoin.placeId = :placeId';
+
+    if(filter?.placeId)
+      repository = this.placeToCoinTypeRepository
+      .createQueryBuilder('placeToCoin')
+      .leftJoin('placeToCoin.coinToType', 'coinToType')
+    else
+      repository = this.coinToTypeRepository
       .createQueryBuilder('coinToType')
+
+    return await repository
+      .select([
+        'DISTINCT coinToType.id as "id"',
+        'coinToType.coinId as "coinId"',
+        'coinToType.type as "type"',
+        'coinToType.name_en as "name_en"',
+        'coinToType.name_am as "name_am"',
+        'coinToType.name_ru as "name_ru"',
+        'coinToType.count as "count"'
+      ])
       .where(where, {
         exclude: filter?.exclude || [],
+        placeId: filter?.placeId
       })
-      .getMany();
+      .getRawMany();
   }
 
   async findCoinToTypeById(coinToTypeId: number) {
     return await this.coinToTypeRepository.findOneBy({ id: coinToTypeId });
   }
 
-  async findPlaces() {
-    return await this.placeRepository.createQueryBuilder('place').getMany();
+  async findPlaces(filter?: { query?: string, coinToTypeId?: number }) {
+    let where = '';
+    let repository;
+
+    if(filter?.coinToTypeId)
+      where = 'placeToCoin.coinToTypeId = :coinToTypeId'
+
+    if(filter?.query)
+      where += where.length ? ' AND ' : '' + '(LOWER(place.name_en) like LOWER(:query) OR LOWER(place.name_am) like LOWER(:query) OR LOWER(place.name_ru) like LOWER(:query))'
+
+    if(filter?.coinToTypeId)
+      repository = this.placeToCoinTypeRepository
+      .createQueryBuilder('placeToCoin')
+      .innerJoin('placeToCoin.place', 'place')
+    else
+      repository = this.placeRepository
+      .createQueryBuilder('place')
+
+    return await repository
+      .select([
+        'DISTINCT place.id as "id"',
+        'place.name_en as "name_en"',
+        'place.name_am as "name_am"',
+        'place.name_ru as "name_ru"',
+        'place.createdAt as "createdAt"'
+      ])
+      .where(where, {
+        coinToTypeId: filter?.coinToTypeId,
+        query: `%${filter?.query || ''}%`
+      })
+      .orderBy('place.id', 'ASC')
+      .getRawMany() as Place[]
   }
 
   async findPlaceById(placeId: number) {
@@ -176,6 +226,7 @@ export class CoinService {
         'place.name_ru as "name_ru"',
       ])
       .where('placeToCoinType.coinToTypeId = :coinToTypeId', { coinToTypeId })
+      .orderBy('place.id', 'ASC')
       .getRawMany()) as Place[];
   }
 
@@ -196,6 +247,10 @@ export class CoinService {
 
   async createPlace(createPlaceDto: CreatePlaceDto) {
     return await this.placeRepository.save(createPlaceDto);
+  }
+
+  async createPlaceToCoinType(createPlaceToCoinTypeDto: { placeId: number, coinToTypeId: number }){
+    return await this.placeToCoinTypeRepository.save(createPlaceToCoinTypeDto)
   }
 
   async createPair(createPairDto: CreatePairDto) {
@@ -312,6 +367,18 @@ export class CoinService {
     if (!place) throw new NotFoundException('Place Not Found');
 
     await this.placeRepository.delete({ id: placeId });
+
+    return {
+      success: true,
+    };
+  }
+
+  async deletePlaceToCoinType(placeId: number, coinToTypeId: number){
+    const placeToCoinType = await this.placeToCoinTypeRepository.findBy({ placeId, coinToTypeId });
+
+    if (!placeToCoinType) throw new NotFoundException('Pair Not Found');
+
+    await this.placeToCoinTypeRepository.delete({ placeId, coinToTypeId });
 
     return {
       success: true,
