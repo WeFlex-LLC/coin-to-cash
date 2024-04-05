@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-// import { join } from 'path';
-// import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
