@@ -1,8 +1,15 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Pair } from 'src/coin/entities/pair';
 import { Place } from 'src/coin/entities/place.entity';
 import { ExchangeOption } from '../enums/exchange-option.enum';
 import { User } from './user.entity';
+import { OrderStatus } from '../enums/order-status';
 
 @Entity('order')
 export class Order {
@@ -21,6 +28,13 @@ export class Order {
   })
   option: ExchangeOption;
 
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.Waiting,
+  })
+  orderStatus: OrderStatus;
+
   @ManyToOne(() => User, (user) => user.orders)
   user: User;
 
@@ -29,4 +43,7 @@ export class Order {
 
   @ManyToOne(() => Pair, (pair) => pair.orders)
   pair: Pair;
+
+  @CreateDateColumn({ name: 'createdAt' })
+  createdAt: Date;
 }

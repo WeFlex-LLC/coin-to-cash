@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -6,6 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Lang } from './enums/lang.enum';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
+import { OrderStatus } from './enums/order-status';
+import { CoinService } from 'src/coin/coin.service';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +21,8 @@ export class UsersService {
 
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+
+    private readonly coinService: CoinService,
   ) {}
 
   async addUser(createUserDto: CreateUserDto) {
@@ -38,6 +46,72 @@ export class UsersService {
       ...createOrderDto,
       orderNumber: this.generateOrderNumber(),
     });
+  }
+
+  async findUsers() {
+    return await this.userRepository.find({ order: { id: 'DESC' } });
+  }
+
+  async findOrders(filter?: { status?: OrderStatus }) {
+    let where = '';
+
+    if (filter?.status) where = 'order.orderStatus = :status';
+
+    const orders = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.place', 'place')
+      .where(where)
+      .setParameters({
+        status: filter?.status,
+      })
+      .getMany();
+
+    return orders;
+  }
+
+  async findOneOrder(id: number) {
+    return await this.orderRepository.findOne({
+      where: { id },
+      relations: { user: true, place: true, pair: { from: true, to: true } },
+    });
+  }
+
+  async updateStatus(id: number, orderStatus: OrderStatus) {
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: { pair: true },
+    });
+
+    if (!order) throw new NotFoundException('Order Not Found');
+
+    if (orderStatus == OrderStatus.Completed) {
+      const { success } = await this.coinService.updateCounts(
+        order.pair.id,
+        order.amount,
+        order.option,
+      );
+
+      if (!success) throw new InternalServerErrorException();
+    }
+
+    await this.orderRepository.update({ id }, { orderStatus });
+
+    return {
+      success: true,
+    };
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) throw new NotFoundException('User Not Found');
+
+    await this.userRepository.delete({ id });
+
+    return {
+      success: true,
+    };
   }
 
   private generateOrderNumber(): number {

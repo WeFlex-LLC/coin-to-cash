@@ -138,26 +138,18 @@ export class TelegramBotService {
     if (this.pendingOrders[id]) {
       this.pendingOrders[id].amount = amount;
       const { pairId, option } = this.pendingOrders[id];
-      const interval = await this.coinService.findOneInterval(pairId, amount);
       const pair = await this.coinService.findPairById(pairId);
 
-      let price;
+      const price = await this.coinService.calculatePrices(
+        pairId,
+        amount,
+        option,
+      );
 
-      if (option == ExchangeOption.Take) {
-        price =
-          ((amount / pair.rate + interval.fixedPrice) * 100) /
-          (100 - interval.percent);
-        price = Math.ceil(price);
-
+      if (option == ExchangeOption.Take)
         text = `${this.languagesService.library[user.lang].you_should_pay} ${price} ${pair.from['name_' + user.lang]}`;
-      } else {
-        const commission = (amount * interval.percent) / 100;
-
-        price = (amount - commission - interval.fixedPrice) * pair.rate;
-        price = Math.ceil(price);
-
+      else
         text = `${this.languagesService.library[user.lang].you_will_get} ${price} ${pair.to['name_' + user.lang]}`;
-      }
 
       options.reply_markup.keyboard.push([
         this.languagesService.library[user.lang].make_order,

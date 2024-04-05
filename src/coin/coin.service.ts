@@ -17,6 +17,7 @@ import { CreatePairDto } from './dto/create-pair.dto';
 import { UpdatePairDto } from './dto/update-pair.dto';
 import { CreateIntervalDto } from './dto/create-interval.dto';
 import { UpdateIntervalDto } from './dto/update-interval.dto';
+import { ExchangeOption } from 'src/users/enums/exchange-option.enum';
 
 @Injectable()
 export class CoinService {
@@ -63,21 +64,21 @@ export class CoinService {
     return coin;
   }
 
-  async findCoinToTypes(filter?: { exclude?: string[], placeId?: number }) {
+  async findCoinToTypes(filter?: { exclude?: string[]; placeId?: number }) {
     let where = '';
     let repository;
 
     if (filter?.exclude) where += 'coinToType.id NOT IN (:...exclude)';
 
-    if (filter?.placeId) where += where.length ? ' AND ' : '' + 'placeToCoin.placeId = :placeId';
+    if (filter?.placeId)
+      where += where.length ? ' AND ' : '' + 'placeToCoin.placeId = :placeId';
 
-    if(filter?.placeId)
+    if (filter?.placeId)
       repository = this.placeToCoinTypeRepository
-      .createQueryBuilder('placeToCoin')
-      .leftJoin('placeToCoin.coinToType', 'coinToType')
+        .createQueryBuilder('placeToCoin')
+        .leftJoin('placeToCoin.coinToType', 'coinToType');
     else
-      repository = this.coinToTypeRepository
-      .createQueryBuilder('coinToType')
+      repository = this.coinToTypeRepository.createQueryBuilder('coinToType');
 
     return await repository
       .select([
@@ -87,11 +88,11 @@ export class CoinService {
         'coinToType.name_en as "name_en"',
         'coinToType.name_am as "name_am"',
         'coinToType.name_ru as "name_ru"',
-        'coinToType.count as "count"'
+        'coinToType.count as "count"',
       ])
       .where(where, {
         exclude: filter?.exclude || [],
-        placeId: filter?.placeId
+        placeId: filter?.placeId,
       })
       .getRawMany();
   }
@@ -100,38 +101,39 @@ export class CoinService {
     return await this.coinToTypeRepository.findOneBy({ id: coinToTypeId });
   }
 
-  async findPlaces(filter?: { query?: string, coinToTypeId?: number }) {
+  async findPlaces(filter?: { query?: string; coinToTypeId?: number }) {
     let where = '';
     let repository;
 
-    if(filter?.coinToTypeId)
-      where = 'placeToCoin.coinToTypeId = :coinToTypeId'
+    if (filter?.coinToTypeId)
+      where = 'placeToCoin.coinToTypeId = :coinToTypeId';
 
-    if(filter?.query)
-      where += where.length ? ' AND ' : '' + '(LOWER(place.name_en) like LOWER(:query) OR LOWER(place.name_am) like LOWER(:query) OR LOWER(place.name_ru) like LOWER(:query))'
+    if (filter?.query)
+      where += where.length
+        ? ' AND '
+        : '' +
+          '(LOWER(place.name_en) like LOWER(:query) OR LOWER(place.name_am) like LOWER(:query) OR LOWER(place.name_ru) like LOWER(:query))';
 
-    if(filter?.coinToTypeId)
+    if (filter?.coinToTypeId)
       repository = this.placeToCoinTypeRepository
-      .createQueryBuilder('placeToCoin')
-      .innerJoin('placeToCoin.place', 'place')
-    else
-      repository = this.placeRepository
-      .createQueryBuilder('place')
+        .createQueryBuilder('placeToCoin')
+        .innerJoin('placeToCoin.place', 'place');
+    else repository = this.placeRepository.createQueryBuilder('place');
 
-    return await repository
+    return (await repository
       .select([
         'DISTINCT place.id as "id"',
         'place.name_en as "name_en"',
         'place.name_am as "name_am"',
         'place.name_ru as "name_ru"',
-        'place.createdAt as "createdAt"'
+        'place.createdAt as "createdAt"',
       ])
       .where(where, {
         coinToTypeId: filter?.coinToTypeId,
-        query: `%${filter?.query || ''}%`
+        query: `%${filter?.query || ''}%`,
       })
-      .orderBy('place.id', 'ASC')
-      .getRawMany() as Place[]
+      .orderBy('place.id', 'DESC')
+      .getRawMany()) as Place[];
   }
 
   async findPlaceById(placeId: number) {
@@ -163,7 +165,7 @@ export class CoinService {
         toId: filter.toId,
         fromId: filter.fromId,
       })
-      .orderBy('pair.id');
+      .orderBy('pair.id', 'DESC');
 
     if (join?.to) pairs.leftJoinAndSelect('pair.to', 'to');
 
@@ -226,7 +228,7 @@ export class CoinService {
         'place.name_ru as "name_ru"',
       ])
       .where('placeToCoinType.coinToTypeId = :coinToTypeId', { coinToTypeId })
-      .orderBy('place.id', 'ASC')
+      .orderBy('place.id', 'DESC')
       .getRawMany()) as Place[];
   }
 
@@ -249,8 +251,11 @@ export class CoinService {
     return await this.placeRepository.save(createPlaceDto);
   }
 
-  async createPlaceToCoinType(createPlaceToCoinTypeDto: { placeId: number, coinToTypeId: number }){
-    return await this.placeToCoinTypeRepository.save(createPlaceToCoinTypeDto)
+  async createPlaceToCoinType(createPlaceToCoinTypeDto: {
+    placeId: number;
+    coinToTypeId: number;
+  }) {
+    return await this.placeToCoinTypeRepository.save(createPlaceToCoinTypeDto);
   }
 
   async createPair(createPairDto: CreatePairDto) {
@@ -373,8 +378,11 @@ export class CoinService {
     };
   }
 
-  async deletePlaceToCoinType(placeId: number, coinToTypeId: number){
-    const placeToCoinType = await this.placeToCoinTypeRepository.findBy({ placeId, coinToTypeId });
+  async deletePlaceToCoinType(placeId: number, coinToTypeId: number) {
+    const placeToCoinType = await this.placeToCoinTypeRepository.findBy({
+      placeId,
+      coinToTypeId,
+    });
 
     if (!placeToCoinType) throw new NotFoundException('Pair Not Found');
 
@@ -405,6 +413,54 @@ export class CoinService {
     if (!interval) throw new NotFoundException('Interval Not Found');
 
     await this.intervalRepository.delete({ id: intervalId });
+
+    return {
+      success: true,
+    };
+  }
+
+  async calculatePrices(
+    pairId: number,
+    amount: number,
+    option: ExchangeOption,
+  ): Promise<number> {
+    const pair = await this.findPairById(pairId);
+    const interval = await this.findOneInterval(pairId, amount);
+
+    let price: number;
+
+    if (option == ExchangeOption.Take) {
+      price =
+        ((amount / pair.rate + interval.fixedPrice) * 100) /
+        (100 - interval.percent);
+      price = Math.ceil(price);
+    } else {
+      const commission = (amount * interval.percent) / 100;
+
+      price = (amount - commission - interval.fixedPrice) * pair.rate;
+      price = Math.ceil(price);
+    }
+
+    return price;
+  }
+
+  async updateCounts(pairId: number, amount: number, option: ExchangeOption) {
+    const price = await this.calculatePrices(pairId, amount, option);
+    const pair = await this.findPairById(pairId);
+
+    await this.coinToTypeRepository.update(
+      { id: pair.fromId },
+      {
+        count:
+          pair.from.count - (option == ExchangeOption.Take ? price : amount),
+      },
+    );
+    await this.coinToTypeRepository.update(
+      { id: pair.toId },
+      {
+        count: pair.to.count + (option == ExchangeOption.Give ? price : amount),
+      },
+    );
 
     return {
       success: true,

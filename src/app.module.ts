@@ -4,6 +4,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
@@ -34,9 +36,9 @@ import { LanguagesModule } from './languages/languages.module';
       }),
       inject: [ConfigService],
     }),
-    // ServeStaticModule.forRoot({
-    //   rootPath: join(__dirname, '../build'),
-    // }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '../build'),
+    }),
     ScheduleModule.forRoot(),
     TelegramBotModule,
     AdminsModule,
