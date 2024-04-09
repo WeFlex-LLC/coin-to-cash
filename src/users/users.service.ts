@@ -65,6 +65,7 @@ export class UsersService {
       .setParameters({
         status: filter?.status,
       })
+      .orderBy('order.id', 'DESC')
       .getMany();
 
     return orders;
