@@ -181,15 +181,15 @@ export class CoinService {
       .createQueryBuilder('pair')
       .leftJoin('pair.from', 'fromCoinToType')
       .select([
-        'coinToType.id as "id"',
+        'fromCoinToType.id as "id"',
         'pair.id as "pairId"',
         'pair.fromId as "fromId"',
         'pair.toId as "toId"',
-        'coinToType.coinId as "coinId"',
-        'coinToType.name_en as "name_en"',
-        'coinToType.name_am as "name_am"',
-        'coinToType.name_ru as "name_ru"',
-        'coinToType.type as "type"',
+        'fromCoinToType.coinId as "coinId"',
+        'fromCoinToType.name_en as "name_en"',
+        'fromCoinToType.name_am as "name_am"',
+        'fromCoinToType.name_ru as "name_ru"',
+        'fromCoinToType.type as "type"',
       ])
       .where(where, {
         toId,
