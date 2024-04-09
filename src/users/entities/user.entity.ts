@@ -13,7 +13,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int', unique: true })
+  @Column({ type: 'bigint', unique: true })
   telegramId: number;
 
   @Column({ type: 'enum', enum: Lang })

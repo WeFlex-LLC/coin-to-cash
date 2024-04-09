@@ -73,9 +73,10 @@ export class TelegramBotService {
     this.showWhatYouWant(ctx, user);
   }
 
+  @Action('makeOrder')
   @Hears(['Make order', 'Сделать заказ', 'Կատարել պատվեր'])
   async makeOrder(@Ctx() ctx) {
-    const { id } = ctx.update.message.from;
+    const { id } = ctx.update.message?.from || ctx.update.callback_query.from;
     const user = await this.usersService.getUserByTelegramId(id);
     let order: Order;
 
@@ -130,6 +131,7 @@ export class TelegramBotService {
     const options = {
       reply_markup: {
         keyboard: [],
+        inline_keyboard: [],
         resize_keyboard: true,
         one_time_keyboard: true,
       },
@@ -140,7 +142,7 @@ export class TelegramBotService {
       const { pairId, option } = this.pendingOrders[id];
       const pair = await this.coinService.findPairById(pairId);
 
-      const price = await this.coinService.calculatePrices(
+      const price = await this.coinService.calculatePrice(
         pairId,
         amount,
         option,
@@ -151,8 +153,11 @@ export class TelegramBotService {
       else
         text = `${this.languagesService.library[user.lang].you_will_get} ${price} ${pair.to['name_' + user.lang]}`;
 
-      options.reply_markup.keyboard.push([
-        this.languagesService.library[user.lang].make_order,
+      options.reply_markup.inline_keyboard.push([
+        {
+          text: this.languagesService.library[user.lang].make_order,
+          callback_data: 'makeOrder',
+        },
       ]);
     } else {
       options.reply_markup.keyboard.push([
@@ -292,43 +297,47 @@ export class TelegramBotService {
     if (!this.pendingOrders[user.telegramId])
       this.addTimeout(user.telegramId.toString(), 1000 * 60 * 10);
 
-    this.pendingOrders[user.telegramId] = { pairId: pairId, option };
+    this.pendingOrders[user.telegramId] = {
+      pairId: pairId,
+      option,
+      placeId: 1,
+    }; // remove placeId
 
-    if (pair.from.type == CoinType.Cash || pair.to.type == CoinType.Cash) {
-      const places = await this.coinService.findPlacesByCoinToTypeId(
-        option == ExchangeOption.Take ? pair.toId : pair.fromId,
-      );
+    // if (pair.from.type == CoinType.Cash || pair.to.type == CoinType.Cash) {
+    //   const places = await this.coinService.findPlacesByCoinToTypeId(
+    //     pair.to.type == 'cash' ? pair.toId : pair.fromId,
+    //   );
 
-      const keyboard = chunk(
-        places.map((e) => ({
-          text: e['name_' + user.lang],
-          callback_data: 'selectPlace(' + e.id + ')',
-        })),
-        2,
-      );
+    //   const keyboard = chunk(
+    //     places.map((e) => ({
+    //       text: e['name_' + user.lang],
+    //       callback_data: 'selectPlace(' + e.id + ')',
+    //     })),
+    //     2,
+    //   );
 
-      const options = {
-        reply_markup: {
-          inline_keyboard: keyboard,
-          resize_keyboard: true,
-        },
-      };
+    //   const options = {
+    //     reply_markup: {
+    //       inline_keyboard: keyboard,
+    //       resize_keyboard: true,
+    //     },
+    //   };
 
-      await ctx.reply(
-        this.languagesService.library[user.lang].your_city,
-        options,
-      );
-    } else {
-      const coinToType = await this.coinService.findCoinToTypeById(
-        this.pendingOrders[user.telegramId].option == ExchangeOption.Take
-          ? pair.toId
-          : pair.fromId,
-      );
+    //   await ctx.reply(
+    //     this.languagesService.library[user.lang].your_city,
+    //     options,
+    //   );
+    // } else {
+    const coinToType = await this.coinService.findCoinToTypeById(
+      this.pendingOrders[user.telegramId].option == ExchangeOption.Take
+        ? pair.toId
+        : pair.fromId,
+    );
 
-      await ctx.reply(
-        `${this.languagesService.library[user.lang].write_the_amount} ${this.pendingOrders[user.telegramId].option ? this.languagesService.library[user.lang].take.toLocaleLowerCase() : this.languagesService.library[user.lang].give.toLocaleLowerCase()} ${coinToType['name_' + user.lang]}`,
-      );
-    }
+    await ctx.reply(
+      `${this.languagesService.library[user.lang].write_the_amount} ${this.pendingOrders[user.telegramId].option ? this.languagesService.library[user.lang].take.toLocaleLowerCase() : this.languagesService.library[user.lang].give.toLocaleLowerCase()} ${coinToType['name_' + user.lang]}`,
+    );
+    // }
   }
 
   @Action(/selectPlace\((\d+)\)/)

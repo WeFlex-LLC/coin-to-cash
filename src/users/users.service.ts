@@ -72,10 +72,21 @@ export class UsersService {
   }
 
   async findOneOrder(id: number) {
-    return await this.orderRepository.findOne({
+    const order = await this.orderRepository.findOne({
       where: { id },
       relations: { user: true, place: true, pair: { from: true, to: true } },
     });
+
+    const calcAmount = await this.coinService.calculatePrice(
+      order.pair.id,
+      order.amount,
+      order.option,
+    );
+
+    return {
+      ...order,
+      calcAmount,
+    };
   }
 
   async updateStatus(id: number, orderStatus: OrderStatus) {

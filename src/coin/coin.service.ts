@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  MethodNotAllowedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Coin } from './entities/coin.entity';
 import { Repository } from 'typeorm';
@@ -159,7 +163,7 @@ export class CoinService {
 
     if (filter?.fromId) where += where ? ' AND ' : '' + 'pair.fromId = :fromId';
 
-    const pairs = await this.pairRepository
+    const pairs = this.pairRepository
       .createQueryBuilder('pair')
       .where(where, {
         toId: filter.toId,
@@ -171,7 +175,7 @@ export class CoinService {
 
     if (join?.from) pairs.leftJoinAndSelect('pair.from', 'from');
 
-    return pairs.getMany();
+    return await pairs.getMany();
   }
 
   async findCoinToTypesByToId(toId: number): Promise<any[]> {
@@ -204,7 +208,7 @@ export class CoinService {
     return await this.intervalRepository
       .createQueryBuilder('interval')
       .where(
-        'interval.pairId = :pairId and ( :amount >= interval.from and :amount <= interval.to ) or ( :amount >= interval.from and interval.to is null ) or ( interval.to is null and interval.from is null )',
+        'interval.pairId = :pairId and ( ( :amount >= interval.from and :amount <= interval.to ) or ( :amount >= interval.from and interval.to is null ) or ( interval.from is null and :amount <= interval.to ) or ( interval.to is null and interval.from is null ) )',
       )
       .setParameters({
         pairId,
@@ -214,7 +218,10 @@ export class CoinService {
   }
 
   async findIntervals(pairId: number) {
-    return await this.intervalRepository.findBy({ pairId });
+    return await this.intervalRepository.find({
+      where: { pairId },
+      order: { id: 'ASC' },
+    });
   }
 
   async findPlacesByCoinToTypeId(coinToTypeId: number) {
@@ -259,6 +266,13 @@ export class CoinService {
   }
 
   async createPair(createPairDto: CreatePairDto) {
+    const pair = await this.pairRepository.findOneBy({
+      toId: createPairDto.toId,
+      fromId: createPairDto.fromId,
+    });
+
+    if (pair) throw new MethodNotAllowedException('Pair already exists');
+
     return await this.pairRepository.save(createPairDto);
   }
 
@@ -419,7 +433,7 @@ export class CoinService {
     };
   }
 
-  async calculatePrices(
+  async calculatePrice(
     pairId: number,
     amount: number,
     option: ExchangeOption,
@@ -438,14 +452,14 @@ export class CoinService {
       const commission = (amount * interval.percent) / 100;
 
       price = (amount - commission - interval.fixedPrice) * pair.rate;
-      price = Math.ceil(price);
+      price = Math.floor(price);
     }
 
     return price;
   }
 
   async updateCounts(pairId: number, amount: number, option: ExchangeOption) {
-    const price = await this.calculatePrices(pairId, amount, option);
+    const price = await this.calculatePrice(pairId, amount, option);
     const pair = await this.findPairById(pairId);
 
     await this.coinToTypeRepository.update(
