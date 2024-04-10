@@ -76,9 +76,10 @@ export class TelegramBotService {
   @Action('makeOrder')
   @Hears(['Make order', 'Сделать заказ', 'Կատարել պատվեր'])
   async makeOrder(@Ctx() ctx) {
+    const { TELEGRAM_GROUP_ID } = process.env;
     const { id } = ctx.update.message?.from || ctx.update.callback_query.from;
     const user = await this.usersService.getUserByTelegramId(id);
-    let order: Order;
+    let order: Order & { calcAmount: number };
 
     if (this.pendingOrders[id]) {
       const { pairId, option, placeId, amount } = this.pendingOrders[id];
@@ -100,6 +101,10 @@ export class TelegramBotService {
         };
 
       order = await this.usersService.createOrder(payload);
+
+      await ctx.telegram.sendMessage(TELEGRAM_GROUP_ID, 
+        `Order Number: ${order.orderNumber}\nTelegram Id: ${id}\nFrom: ${order.pair.from.name_en}\nTo: ${order.pair.to.name_en}\nOption: ${option ? 'Take' : 'Give'}\nGive: ${option ? order.calcAmount : order.amount}\nTake: ${option ? order.amount : order.calcAmount}\nPlace: ${order.place.name_en}\n\nCreated at: ${order.createdAt.toUTCString()}`
+      );
 
       delete this.pendingOrders[id];
       this.schedulerRegistry.deleteTimeout(id.toString());

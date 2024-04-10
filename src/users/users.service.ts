@@ -41,11 +41,13 @@ export class UsersService {
     return { success: true };
   }
 
-  async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
-    return await this.orderRepository.save({
+  async createOrder(createOrderDto: CreateOrderDto) {
+    const order = await this.orderRepository.save({
       ...createOrderDto,
       orderNumber: this.generateOrderNumber(),
     });
+
+    return await this.findOneOrder(order.id);
   }
 
   async findUsers() {
@@ -71,7 +73,7 @@ export class UsersService {
     return orders;
   }
 
-  async findOneOrder(id: number) {
+  async findOneOrder(id: number): Promise<Order & { calcAmount: number }> {
     const order = await this.orderRepository.findOne({
       where: { id },
       relations: { user: true, place: true, pair: { from: true, to: true } },
