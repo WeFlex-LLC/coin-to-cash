@@ -24,7 +24,7 @@ import { LanguagesModule } from './languages/languages.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         timezone: 'Z',
-        url: configService.get('DB_HOST'),
+        url: configService.get('DB_URL'),
         autoLoadEntities: true,
         synchronize: true,
       }),
