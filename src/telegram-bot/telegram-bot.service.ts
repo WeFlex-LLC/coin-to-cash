@@ -6,7 +6,6 @@ import { CoinService } from 'src/coin/coin.service';
 import { UsersService } from 'src/users/users.service';
 import { Lang } from 'src/users/enums/lang.enum';
 import { User } from 'src/users/entities/user.entity';
-import { CoinType } from 'src/coin/enums/coin-type.enum';
 import { ExchangeOption } from 'src/users/enums/exchange-option.enum';
 import { Order } from 'src/users/entities/order.entity';
 import { CreateOrderDto } from 'src/users/dto/create-order.dto';
@@ -132,7 +131,7 @@ export class TelegramBotService {
     const user = await this.usersService.getUserByTelegramId(id);
     const amount = ctx.match[0];
 
-    let text = '';
+    let text: string;
     const options = {
       reply_markup: {
         keyboard: [],
